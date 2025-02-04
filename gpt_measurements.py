@@ -220,8 +220,33 @@ for iter in trange(max_iters, desc="Training"):
     optimizer.step()
 
 
+# Compute Perplexity After Final Training Iteration
+final_metrics = estimate_loss()  # returns {'train': (scalar), 'val': (scalar)}
+
+# Extract the scalar losses
+final_train_loss = final_metrics['train']
+final_val_loss = final_metrics['val']
+
+final_train_perplexity = math.exp(final_train_loss)
+final_val_perplexity = math.exp(final_val_loss)
+
+print(f"Final Train Perplexity: {final_train_perplexity:.2f}")
+print(f"Final Validation Perplexity: {final_val_perplexity:.2f}")
+
 # generate from the model
 context = torch.zeros((1, 1), dtype=torch.long, device=device)
-print(decode(m.generate(context, max_new_tokens=500)[0].tolist()))
+# print(decode(m.generate(context, max_new_tokens=500)[0].tolist()))
 # open('more.txt', 'w').write(decode(m.generate(context, max_new_tokens=10000)[0].tolist()))
 
+generated_text = decode(model.generate(context, max_new_tokens=1000)[0].tolist())
+
+# Save generated text
+with open('generated_output.txt', 'w') as f:
+    f.write(generated_text)
+
+# BLEU Score Calculation (Optional)
+reference_text = text[:1000]  # Use the first 1000 characters as reference
+generated_text_sample = generated_text[:1000]  # Compare same length
+
+bleu_score = sentence_bleu([list(reference_text)], list(generated_text_sample))
+print(f"BLEU Score: {bleu_score:.4f}")
