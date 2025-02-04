@@ -6,7 +6,7 @@ from torch.nn import functional as F
 batch_size = 64 # how many independent sequences will we process in parallel?
 block_size = 256 # what is the maximum context length for predictions?
 max_iters = 5000
-eval_interval = 300
+eval_interval = 500
 learning_rate = 3e-4
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 eval_iters = 200
@@ -134,8 +134,8 @@ class Block(nn.Module):
         x = x + self.ffwd(self.ln2(x))
         return x
 
-# super simple bigram model
-class BigramLanguageModel(nn.Module):
+# GPT Language model
+class GPTLanguageModel(nn.Module):
 
     def __init__(self, vocab_size):
         super().__init__()
@@ -145,6 +145,16 @@ class BigramLanguageModel(nn.Module):
         self.blocks = nn.Sequential(*[Block(n_embd, n_head=n_head) for _ in range(n_layer)])
         self.ln_f = nn.LayerNorm(n_embd)  # final layer norm
         self.lm_head = nn.Linear(n_embd, vocab_size)
+
+        self.apply(self._init_weights)
+
+    def _init_weights(self, module):
+        if isinstance(module, nn.Linear):
+            torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
+            if module.bias is not None:
+                torch.nn.init.zeros_(module.bias)
+        elif isinstance(module, nn.Embedding):
+            torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
 
     def forward(self, idx, targets=None):
         B, T = idx.shape
@@ -183,7 +193,7 @@ class BigramLanguageModel(nn.Module):
             idx = torch.cat((idx, idx_next), dim=1) # (B, T+1)
         return idx
 
-model = BigramLanguageModel(vocab_size)
+model = GPTLanguageModel(vocab_size)
 m = model.to(device)
 
 # create a PyTorch optimizer
