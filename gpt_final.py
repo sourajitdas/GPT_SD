@@ -8,7 +8,7 @@ from nltk.translate.bleu_score import sentence_bleu
 # hyperparameters
 batch_size = 64 # how many independent sequences will we process in parallel?
 block_size = 256 # what is the maximum context length for predictions?
-max_iters = 1000
+max_iters = 10000
 eval_interval = 500
 learning_rate = 3e-4
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -16,7 +16,7 @@ eval_iters = 200
 n_embd = 384
 n_head = 6
 n_layer = 6
-dropout = 0.2
+dropout = 0.3
 # ------------
 
 torch.manual_seed(1337)
