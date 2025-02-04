@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
+import math
 from torch.nn import functional as F
+from nltk.translate.bleu_score import sentence_bleu
 
 # hyperparameters
 batch_size = 64 # how many independent sequences will we process in parallel?
@@ -215,7 +217,29 @@ for iter in range(max_iters):
     loss.backward()
     optimizer.step()
 
+
+# Compute Perplexity After Final Training Iteration
+final_metrics = estimate_loss()
+final_train_perplexity = final_metrics['train']['perplexity']
+final_val_perplexity = final_metrics['val']['perplexity']
+
+print(f"Final Train Perplexity: {final_train_perplexity:.2f}")
+print(f"Final Validation Perplexity: {final_val_perplexity:.2f}")
+
 # generate from the model
 context = torch.zeros((1, 1), dtype=torch.long, device=device)
 # print(decode(m.generate(context, max_new_tokens=500)[0].tolist()))
-open('more.txt', 'w').write(decode(m.generate(context, max_new_tokens=10000)[0].tolist()))
+# open('more.txt', 'w').write(decode(m.generate(context, max_new_tokens=10000)[0].tolist()))
+
+generated_text = decode(model.generate(context, max_new_tokens=10000)[0].tolist())
+
+# Save generated text
+with open('generated_output.txt', 'w') as f:
+    f.write(generated_text)
+
+# BLEU Score Calculation (Optional)
+reference_text = text[:1000]  # Use the first 1000 characters as reference
+generated_text_sample = generated_text[:1000]  # Compare same length
+
+bleu_score = sentence_bleu([list(reference_text)], list(generated_text_sample))
+print(f"BLEU Score: {bleu_score:.4f}")
