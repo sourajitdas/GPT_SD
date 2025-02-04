@@ -1,6 +1,7 @@
 import torch
-import torch.nn as nn
 import math
+import torch.nn as nn
+from tqdm import trange
 from torch.nn import functional as F
 from nltk.translate.bleu_score import sentence_bleu
 
@@ -201,7 +202,7 @@ m = model.to(device)
 # create a PyTorch optimizer
 optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
 
-for iter in range(max_iters):
+for iter in trange(max_iters, desc="Training"):
 
     # every once in a while evaluate the loss on train and val sets
     if iter % eval_interval == 0:
@@ -219,9 +220,14 @@ for iter in range(max_iters):
 
 
 # Compute Perplexity After Final Training Iteration
-final_metrics = estimate_loss()
-final_train_perplexity = final_metrics['train']['perplexity']
-final_val_perplexity = final_metrics['val']['perplexity']
+final_metrics = estimate_loss()  # returns {'train': (scalar), 'val': (scalar)}
+
+# Extract the scalar losses
+final_train_loss = final_metrics['train']
+final_val_loss = final_metrics['val']
+
+final_train_perplexity = math.exp(final_train_loss)
+final_val_perplexity = math.exp(final_val_loss)
 
 print(f"Final Train Perplexity: {final_train_perplexity:.2f}")
 print(f"Final Validation Perplexity: {final_val_perplexity:.2f}")
