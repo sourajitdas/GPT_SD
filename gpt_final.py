@@ -8,7 +8,7 @@ from nltk.translate.bleu_score import sentence_bleu
 # hyperparameters
 batch_size = 64 # how many independent sequences will we process in parallel?
 block_size = 256 # what is the maximum context length for predictions?
-max_iters = 5000
+max_iters = 1000
 eval_interval = 500
 learning_rate = 3e-4
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -207,6 +207,7 @@ for iter in trange(max_iters, desc="Training"):
     # every once in a while evaluate the loss on train and val sets
     if iter % eval_interval == 0:
         losses = estimate_loss()
+        print("\n")
         print(f"step {iter}: train loss {losses['train']:.4f}, val loss {losses['val']:.4f}")
 
     # sample a batch of data
@@ -237,7 +238,7 @@ context = torch.zeros((1, 1), dtype=torch.long, device=device)
 # print(decode(m.generate(context, max_new_tokens=500)[0].tolist()))
 # open('more.txt', 'w').write(decode(m.generate(context, max_new_tokens=10000)[0].tolist()))
 
-generated_text = decode(model.generate(context, max_new_tokens=10000)[0].tolist())
+generated_text = decode(model.generate(context, max_new_tokens=1000)[0].tolist())
 
 # Save generated text
 with open('generated_output.txt', 'w') as f:
